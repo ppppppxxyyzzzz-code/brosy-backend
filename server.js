@@ -336,9 +336,22 @@ app.delete('/api/beers/:id', async (req, res) => {
 });
 // Uruchomienie serwera na porcie 5000
 const PORT = process.env.PORT || 5000;
+
+// OSTATECZNE, CZYSTE POŁĄCZENIE: Bez zbędnych opcji, które wywalają błędy w nowym Node!
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("🌱 Połączono pomyślnie z MongoDB Atlas w chmurze!"))
+.catch(err => console.error("❌ Błąd krytyczny połączenia z bazą:", err));
+
+// Domyślna trasa testowa, żeby Vercel nie wypluwał pustego ekranu (Cannot GET /)
+app.get('/', (req, res) => {
+  res.status(200).json({ success: true, message: "Serwer aplikacji BROSY działa poprawnie w chmurze!" });
+});
+
+// Tradycyjne nasłuchiwanie portu odpala się TYLKO lokalnie u Ciebie na dysku
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-    console.log(`🖥️  Serwer Node.js nasłuchuje na porcie ${PORT}`);
+    console.log(`🖥️  Serwer Node.js nasłuchuje lokalnie na porcie ${PORT}`);
   });
 }
+
 module.exports = app;
