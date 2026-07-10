@@ -339,3 +339,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🖥️  Serwer Node.js nasłuchuje na porcie ${PORT}`);
 });
+module.exports = app;
