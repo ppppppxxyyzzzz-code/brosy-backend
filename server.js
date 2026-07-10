@@ -336,7 +336,9 @@ app.delete('/api/beers/:id', async (req, res) => {
 });
 // Uruchomienie serwera na porcie 5000
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🖥️  Serwer Node.js nasłuchuje na porcie ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🖥️  Serwer Node.js nasłuchuje na porcie ${PORT}`);
+  });
+}
 module.exports = app;
