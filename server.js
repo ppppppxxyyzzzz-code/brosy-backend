@@ -347,11 +347,8 @@ app.get('/', (req, res) => {
   res.status(200).json({ success: true, message: "Serwer aplikacji BROSY działa poprawnie w chmurze!" });
 });
 
-// Tradycyjne nasłuchiwanie portu odpala się TYLKO lokalnie u Ciebie na dysku
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🖥️  Serwer Node.js nasłuchuje lokalnie na porcie ${PORT}`);
-  });
-}
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Serwer działa publicznie na porcie ${PORT}`);
+});
 
 module.exports = app;
