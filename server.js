@@ -71,7 +71,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // Bezpieczne szyfrowanie (hashowanie) hasła użytkownika
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(6);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Tworzymy nowego użytkownika w bazie MongoDB Atlas
@@ -352,3 +352,4 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = app;
+
