@@ -7,7 +7,6 @@ const bcrypt = require('bcryptjs');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const multer = require('multer');
 const path = require('path');
 require('dotenv').config();
 
@@ -19,25 +18,6 @@ const app = express();
 // Włączamy obsługę CORS i czytania formatu JSON
 app.use(cors());
 app.use(express.json());
-
-// NOWOŚĆ: Udostępniamy folder 'uploads' całemu światu (telefon będzie stąd pobierał zdjęcia przez link URL)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// -------------------------------------------------------------
-// KONFIGURACJA MULTERA (ZAPIS ZDJĘĆ Z TELEFONU)
-// -------------------------------------------------------------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Zdjęcia lecą do folderu uploads
-  },
-  filename: function (req, file, cb) {
-    // Nadajemy unikalną nazwę pliku: data_kliknięcia + oryginalne rozszerzenie (np. .jpg)
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // -------------------------------------------------------------
 // POŁĄCZENIE Z BAZĄ DANYCH
