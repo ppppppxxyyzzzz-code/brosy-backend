@@ -126,28 +126,24 @@ app.post('/api/auth/login', async (req, res) => {
 
 // TRASA: Dodawanie nowej oceny piwa (Odbiera tekst + plik graficzny)
 // upload.single('beerImage') oznacza, że telefon wyśle zdjęcie w polu o nazwie 'beerImage'
-app.post('/api/beers', upload.single('beerImage'), async (req, res) => {
+// BEZPIECZNA TRASA JSON DLA VERCEL (Zachowuje Twoją inteligentną logikę aktualizacji ocen!)
+app.post('/api/beers', async (req, res) => {
   try {
-    const { userId, name, alcohol, volume, price, rating, description } = req.body;
+    // 1. Odbieramy dane tekstowe wysłane z telefonu jako JSON (w tym link z Cloudinary)
+    const { userId, name, alcohol, volume, price, rating, description, beerImage } = req.body;
 
     if (!userId) {
       return res.status(400).json({ success: false, message: "Brak identyfikatora użytkownika." });
     }
 
-    // Przygotowujemy link do zdjęcia, jeśli zostało przesłane
-    let imageUrl = "";
-    if (req.file) {
-      imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    }
-
-    // Wyciągamy dane do inteligentnego sprawdzenia (czyszczenie nazwy z wielkich liter i spacji)
+    // Wyciągamy dane do inteligentnego sprawdzenia
     const cleanName = name.trim();
     const parsedAlcohol = parseFloat(alcohol);
     const parsedVolume = parseInt(volume);
 
     // SZUKAMY: Czy TEN konkretny użytkownik oceniał już piwo o TEJ samej nazwie, % i pojemności?
     const existingBeer = await Beer.findOne({
-      userId: new mongoose.Types.ObjectId(userId), // Wymuszamy profesjonalny format ID dla MongoDB
+      userId: new mongoose.Types.ObjectId(userId),
       name: { $regex: new RegExp(`^${cleanName}$`, 'i') },
       alcohol: parsedAlcohol,
       volume: parsedVolume
@@ -159,9 +155,9 @@ app.post('/api/beers', upload.single('beerImage'), async (req, res) => {
       existingBeer.price = parseFloat(price);
       existingBeer.description = description;
       
-      // Zdjęcie aktualizujemy tylko, jeśli użytkownik zrobił nowe
-      if (imageUrl) {
-        existingBeer.image = imageUrl;
+      // Zdjęcie z Cloudinary aktualizujemy tylko, jeśli użytkownik zrobił nowe
+      if (beerImage) {
+        existingBeer.image = beerImage;
       }
       
       existingBeer.createdAt = Date.now(); // odświeżamy datę na najnowszą
@@ -174,7 +170,7 @@ app.post('/api/beers', upload.single('beerImage'), async (req, res) => {
       });
     }
 
-    //WPIS: Jeśli użytkownik ocenia to piwo pierwszy raz w życiu, tworzymy nowy dokument
+    // ➕ WPIS: Jeśli użytkownik ocenia to piwo pierwszy raz w życiu, tworzymy nowy dokument
     const newBeer = new Beer({
       userId,
       name: cleanName,
@@ -183,7 +179,7 @@ app.post('/api/beers', upload.single('beerImage'), async (req, res) => {
       price: parseFloat(price),
       rating: parseInt(rating),
       description,
-      image: imageUrl
+      image: beerImage || "" // <-- Zapisujemy bezpieczny link, który przyszedł z telefonu!
     });
 
     const savedBeer = await newBeer.save();
