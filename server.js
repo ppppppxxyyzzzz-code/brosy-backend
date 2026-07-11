@@ -126,24 +126,26 @@ app.post('/api/auth/login', async (req, res) => {
 
 // TRASA: Dodawanie nowej oceny piwa (Odbiera tekst + plik graficzny)
 // upload.single('beerImage') oznacza, że telefon wyśle zdjęcie w polu o nazwie 'beerImage'
-// BEZPIECZNA TRASA JSON DLA VERCEL (Zachowuje Twoją inteligentną logikę aktualizacji ocen!)
 app.post('/api/beers', async (req, res) => {
   try {
-    // 1. Odbieramy dane tekstowe wysłane z telefonu jako JSON (w tym link z Cloudinary)
     const { userId, name, alcohol, volume, price, rating, description, beerImage } = req.body;
 
     if (!userId) {
       return res.status(400).json({ success: false, message: "Brak identyfikatora użytkownika." });
     }
 
-    // Wyciągamy dane do inteligentnego sprawdzenia
+    // Przygotowujemy link do zdjęcia, jeśli zostało przesłane
+    let imageUrl = beerImage || "";
+
+
+    // Wyciągamy dane do inteligentnego sprawdzenia (czyszczenie nazwy z wielkich liter i spacji)
     const cleanName = name.trim();
     const parsedAlcohol = parseFloat(alcohol);
     const parsedVolume = parseInt(volume);
 
     // SZUKAMY: Czy TEN konkretny użytkownik oceniał już piwo o TEJ samej nazwie, % i pojemności?
     const existingBeer = await Beer.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: new mongoose.Types.ObjectId(userId), // Wymuszamy profesjonalny format ID dla MongoDB
       name: { $regex: new RegExp(`^${cleanName}$`, 'i') },
       alcohol: parsedAlcohol,
       volume: parsedVolume
@@ -155,9 +157,9 @@ app.post('/api/beers', async (req, res) => {
       existingBeer.price = parseFloat(price);
       existingBeer.description = description;
       
-      // Zdjęcie z Cloudinary aktualizujemy tylko, jeśli użytkownik zrobił nowe
-      if (beerImage) {
-        existingBeer.image = beerImage;
+      // Zdjęcie aktualizujemy tylko, jeśli użytkownik zrobił nowe
+      if (imageUrl) {
+        existingBeer.image = imageUrl;
       }
       
       existingBeer.createdAt = Date.now(); // odświeżamy datę na najnowszą
@@ -170,7 +172,7 @@ app.post('/api/beers', async (req, res) => {
       });
     }
 
-    // ➕ WPIS: Jeśli użytkownik ocenia to piwo pierwszy raz w życiu, tworzymy nowy dokument
+    //WPIS: Jeśli użytkownik ocenia to piwo pierwszy raz w życiu, tworzymy nowy dokument
     const newBeer = new Beer({
       userId,
       name: cleanName,
@@ -179,7 +181,7 @@ app.post('/api/beers', async (req, res) => {
       price: parseFloat(price),
       rating: parseInt(rating),
       description,
-      image: beerImage || "" // <-- Zapisujemy bezpieczny link, który przyszedł z telefonu!
+      image: imageUrl
     });
 
     const savedBeer = await newBeer.save();
