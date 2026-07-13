@@ -246,7 +246,7 @@ app.get('/api/ranking', async (req, res) => {
       }
 
       return {
-        id: beer.id,
+        id: beer.name,
         name: beer.name,
         alcohol: beer.alcohol,
         volume: beer.volume,
