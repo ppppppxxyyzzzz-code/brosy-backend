@@ -293,7 +293,7 @@ app.get('/api/profile-stats', async (req, res) => {
     const longDescriptionsCount = await Beer.countDocuments({
       userId,
       description: { $exists: true },
-      $expr: { $gt: [{ $strLenCP: "$description" }, 20] }
+      $expr: { $gt: [{ $strLenCP: "$description" }, 100] }
     });
 
     // 2. Pobieramy TOP 5 piw najwyżej ocenionych przez TEGO konkretnego usera
