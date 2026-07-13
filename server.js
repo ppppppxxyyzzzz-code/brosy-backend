@@ -253,6 +253,7 @@ app.get('/api/ranking', async (req, res) => {
         price: beer.price,
         rating: beer.rating,
         reviewsCount: beer.reviewsCount,
+        image: finalCover,
         globalImage: finalCover // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
       };
     });
