@@ -254,11 +254,12 @@ app.get('/api/ranking', async (req, res) => {
         rating: beer.rating,
         reviewsCount: beer.reviewsCount,
         image: finalCover,
-        globalImage: finalCover // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
+        globalImage: finalCover, // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
+        allImages: beer.allImages 
       };
     });
     // Domyślnie na tym etapie zwracamy surową listę z bazy, telefon zajmie się jej sortowaniem i suwakami!
-    res.status(200).json(ranking);
+    res.status(200).json(rankingWithImages);
   } catch (error) {
     console.error("❌ Błąd podczas generowania rankingu:", error);
     res.status(500).json({ success: false, message: "Wystąpił błąd serwera podczas ładowania rankingu." });
