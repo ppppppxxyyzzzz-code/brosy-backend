@@ -253,7 +253,7 @@ app.get('/api/ranking', async (req, res) => {
         price: beer.price,
         rating: beer.rating,
         reviewsCount: beer.reviewsCount,
-        image: finalCover // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
+        globalImage: finalCover // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
       };
     });
     // Domyślnie na tym etapie zwracamy surową listę z bazy, telefon zajmie się jej sortowaniem i suwakami!
