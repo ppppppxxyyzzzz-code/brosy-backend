@@ -177,15 +177,18 @@ app.post('/api/beers', async (req, res) => {
 // -------------------------------------------------------------
 app.get('/api/beers', async (req, res) => {
   try {
-     const { userId } = req.query; // Serwer odbiera ID zalogowanej osoby
+    const { userId } = req.query; // Serwer odbiera ID zalogowanej osoby
 
-    if (!userId) {
-      return res.status(400).json({ success: false, message: "Brak identyfikatora użytkownika." });
+    // Jeśli nie podano (np. dla ogólnego rankingu), pobieramy wszystko!
+    let filter = {};
+    if (userId) {
+      filter = { userId: userId };
     }
-    // .find() wyciąga wszystkie dokumenty z bazy MongoDB Atlas
-    // .sort({ createdAt: -1 }) układa je automatycznie od najnowszego do najstarszego (chronologicznie)
-    const beers = await Beer.find().sort({ createdAt: -1 });
-    
+
+    // .find(filter) wyciąga odpowiednie dokumenty z bazy MongoDB Atlas
+    // .sort({ createdAt: -1 }) układa automatycznie od najnowszego do najstarszego
+    const beers = await Beer.find(filter).sort({ createdAt: -1 });
+
     // Odsyłamy pobraną listę piw prosto do telefonu w formacie JSON
     res.status(200).json(beers);
   } catch (error) {
