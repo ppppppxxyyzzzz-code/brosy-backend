@@ -62,7 +62,7 @@ app.post('/api/auth/register', async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ success: true, message: "Konto zostało utworzone pomyślnie!" });
+    res.status(200).json({ success: true, message: "Konto zostało utworzone pomyślnie!" });
 
   } catch (error) {
     console.error("❌ Błąd podczas rejestracji:", error);
@@ -211,7 +211,8 @@ app.get('/api/ranking', async (req, res) => {
           volume: { $first: "$volume" }, // Bierzemy pojemność
           price: { $avg: "$price" }, // Liczymy automatyczną ŚREDNIĄ cenę z rynku
           rating: { $avg: "$rating" }, // Liczymy automatyczną ŚREDNIĄ ocenę piwa!
-          reviewsCount: { $count: {} } // Zliczamy ile razy to piwo zostało ocenione w systemie
+          reviewsCount: { $count: {} }, // Zliczamy ile razy to piwo zostało ocenione w systemie
+          allImages: { $push: "$image" }
         }
       },
       {
@@ -224,11 +225,37 @@ app.get('/api/ranking', async (req, res) => {
           volume: "$volume",
           price: "$price",
           rating: "$rating",
-          reviewsCount: "$reviewsCount"
+          reviewsCount: "$reviewsCount",
+          allImages: "$allImages"
         }
       }
     ]);
+     const currentDay = new Date().getDate();
+    // Dzielimy przez 2 i zaokrąglamy w dół, aby klucz zmieniał się co 48 godzin
+    const rotationKey = Math.floor(currentDay / 2);
 
+    const rankingWithImages = ranking.map(beer => {
+      // Odrzucamy puste wpisy, zostawiamy tylko prawdziwe linki do zdjęć z Cloudinary
+      const validImages = beer.allImages ? beer.allImages.filter(img => img && img.trim() !== "") : [];
+      
+      let finalCover = "";
+      if (validImages.length > 0) {
+        // Wybieramy jedno konkretne zdjęcie na podstawie dnia roku (rotacja co 2 dni)
+        const imageIndex = rotationKey % validImages.length;
+        finalCover = validImages[imageIndex];
+      }
+
+      return {
+        id: beer.id,
+        name: beer.name,
+        alcohol: beer.alcohol,
+        volume: beer.volume,
+        price: beer.price,
+        rating: beer.rating,
+        reviewsCount: beer.reviewsCount,
+        image: finalCover // <-- Przesyłamy do telefonu gotowy link do zdjęcia okładki!
+      };
+    });
     // Domyślnie na tym etapie zwracamy surową listę z bazy, telefon zajmie się jej sortowaniem i suwakami!
     res.status(200).json(ranking);
   } catch (error) {
